@@ -36,7 +36,7 @@ int read_sensor_data() {
 
   int range_value = map(raw_value, sensor_value_min, sensor_value_max,
                         sensor_range_min, sensor_range_max);
-  range_value = max(min(range_value, 100), 0);
+  range_value = sensor_range_max - max(min(range_value, 100), 0);
 
   Serial.print("Raw sensor value: ");
   Serial.print(raw_value);
