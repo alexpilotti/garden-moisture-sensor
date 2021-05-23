@@ -17,10 +17,10 @@ const char* mqtt_password = MQTT_PASSWORD;
 const char* mqtt_client = MQTT_CLIENT;
 const char* mqtt_topic = MQTT_TOPIC;
 const int mqtt_port = MQTT_PORT;
-int sensor_value_min = SENSOR_VALUE_MIN;
-int sensor_value_max = SENSOR_VALUE_MAX;
-int sensor_range_min = 0;
-int sensor_range_max = 100;
+const int sensor_value_min = SENSOR_VALUE_MIN;
+const int sensor_value_max = SENSOR_VALUE_MAX;
+const int sensor_range_min = 0;
+const int sensor_range_max = 100;
 
 WiFiClientSecure secureClient;
 PubSubClient client(secureClient);
