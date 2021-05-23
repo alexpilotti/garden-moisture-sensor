@@ -5,6 +5,7 @@
 
 #include "user_settings.h"
 
+const int max_retries = MAX_RETRIES;
 const char* ssid = STASSID;
 const char* password = STAPSK;
 // MQTT server X509 fingerprint, get it with:
@@ -47,30 +48,32 @@ int read_sensor_data() {
   return range_value;
 }
 
-void connect_wifi() {
+bool connect_wifi() {
   Serial.println("Connecting WiFi");
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+  for (int i = 0; i < max_retries && WiFi.waitForConnectResult() != WL_CONNECTED; i++) {
     Serial.println("WiFi connection Failed!");
     delay(5000);
   }
+  return WiFi.waitForConnectResult() == WL_CONNECTED;
 }
 
-void connect_mqtt() {
+bool connect_mqtt() {
   secureClient.setFingerprint(mqtt_fingerprint);
   //secureClient.setInsecure();
   client.setServer(mqtt_server, mqtt_port);
   //client.setCallback(callback);
 
   Serial.println("Connecting MQTT");
-  while (!client.connected()) {
+  for (int i = 0; i < max_retries && !client.connected(); i++) {
     if(!client.connect(mqtt_client, mqtt_user, mqtt_password)) {
       Serial.println("MQTT connection Failed!");
       Serial.print(client.state());
       delay(5000);
     }
   }
+  return client.connected();
 }
 
 void send_sensor_value(int value) {
@@ -82,7 +85,7 @@ void send_sensor_value(int value) {
 
   Serial.println("Sending MQTT payload");
   Serial.println(mqtt_payload);
-  while(!client.publish(mqtt_topic, mqtt_payload)) {
+  for (int i = 0; i < max_retries && !client.publish(mqtt_topic, mqtt_payload); i++) {
       Serial.println("MQTT publish failed!");
       delay(5000);
   }
@@ -94,14 +97,13 @@ void setup() {
 
   Serial.println("Started");
 
-  connect_wifi();
-  connect_mqtt();
+  if (connect_wifi() && connect_mqtt()) {
+    int value = read_sensor_data();
+    send_sensor_value(value);
 
-  int value = read_sensor_data();
-  send_sensor_value(value);
-
-  if(!client.loop()) {
-      Serial.println("MQTT loop failed!");
+    if(!client.loop()) {
+        Serial.println("MQTT loop failed!");
+    }
   }
 
   Serial.println("Goodnight!");
