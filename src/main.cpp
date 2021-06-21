@@ -21,6 +21,7 @@ const int sensor_value_min = SENSOR_VALUE_MIN;
 const int sensor_value_max = SENSOR_VALUE_MAX;
 const int sensor_range_min = 0;
 const int sensor_range_max = 100;
+const int sensor_gpio = SENSOR_GPIO;
 
 WiFiClientSecure secureClient;
 PubSubClient client(secureClient);
@@ -32,7 +33,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
 */
 
 int read_sensor_data() {
+  Serial.println("Setting up output pin");
+  pinMode(sensor_gpio, OUTPUT);
+  digitalWrite(sensor_gpio, HIGH);
+  // Ensure the sensor has enough time before taking the reading
+  delay(50);
+
+  Serial.println("Reading sensor's analog value");
   int raw_value = analogRead(A0);
+
+  digitalWrite(sensor_gpio, LOW);
 
   int range_value = map(raw_value, sensor_value_min, sensor_value_max,
                         sensor_range_min, sensor_range_max);
